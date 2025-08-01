@@ -13,3 +13,9 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+ model Linkmap{
+  id Int @id @default(autoincrement())
+  ogLink String
+  newLink String @unique
+  createdAt DateTime @default(now())
+ }

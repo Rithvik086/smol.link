@@ -4,13 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "prisma": "prisma",
-    "postbuild": "mkdir -p dist/views && cp -r src/views/* dist/views/"
-
-  },
+  "dev": "ts-node src/index.ts",
+  "build": "tsc",
+  "start": "node dist/index.js",
+  "prisma": "prisma",
+  "postbuild": "sh -c 'mkdir -p dist/views && cp -r src/views/* dist/views/ && npx prisma migrate deploy'"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",

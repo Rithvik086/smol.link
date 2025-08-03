@@ -2,7 +2,7 @@
 import { PrismaClient } from '../../generated/prisma'
 import { unique_random } from '../utils/unique'
 import { Request, Response } from 'express'
-
+import client from '../utils/redis'
 const prisma = new PrismaClient()
 
 export async function shotner(req: Request, res: Response) {
@@ -18,6 +18,18 @@ export async function shotner(req: Request, res: Response) {
             new URL(ogLink)
         } catch (err) {
             return res.status(400).json({ error: "Invalid URL Please dont try to break code" })
+        }
+        //Check if link already shortend and avoid dupllications
+        const isalreadyExists = await prisma.linkmap.findFirst({
+            where: { ogLink: ogLink }
+        })
+
+        if (isalreadyExists) {
+            const short_url = isalreadyExists.newLink
+            return res.status(201).json({
+                original: ogLink,
+                short: `https://${process.env.HOST_DOMAIN}/${short_url}`
+            })
         }
 
         const store = await prisma.linkmap.create({
@@ -37,6 +49,8 @@ export async function shotner(req: Request, res: Response) {
             data: { newLink: short_url }
         })
 
+       await client.set(short_url, ogLink)
+
         return res.status(201).json({
             original: ogLink,
             short: `https://${process.env.HOST_DOMAIN}/${short_url}`
@@ -54,6 +68,12 @@ export async function redirect(req: Request, res: Response) {
     const { short } = req.params
 
     try {
+        const isCached = await client.get(short)
+
+        if (isCached) {
+            console.log('Voila its a hit:', short)
+            res.redirect(302, isCached)
+        }
         const findOg = await prisma.linkmap.findUnique({
             where: { newLink: short }
         })

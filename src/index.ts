@@ -2,22 +2,21 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { shotner, redirect } from './controller/linkController';
+import { connectRedis } from './utils/redis';
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
+connectRedis();
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Routes
+
 app.get('/', (req: Request, res: Response) => {
 	res.render('Home');
 });

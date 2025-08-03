@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smol.link - URL Shortener</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secondary: '#1e40af'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800 mb-4">
+        <span class="text-primary">Smol</span>.link
+      </h1>
+      <p class="text-xl text-gray-600">Shorten your URLs instantly</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-8">
+      <!-- URL Input Form -->
+      <form id="urlForm" class="space-y-6">
+        <div>
+          <label for="urlInput" class="block text-sm font-medium text-gray-700 mb-2">
+            Enter your long URL
+          </label>
+          <div class="relative">
+            <input type="url" id="urlInput" name="ogLink" placeholder="https://example.com/very-long-url..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" required>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="w-full bg-primary hover:bg-secondary text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+          <span id="btnText">Shorten URL</span>
+          <span id="btnLoader" class="hidden">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processing...
+          </span>
+        </button>
+      </form>
+
+      <!-- Error Message -->
+      <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-red-700" id="errorText"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Result -->
+      <div id="resultContainer" class="hidden mt-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+        <h3 class="text-lg font-semibold text-green-800 mb-4">URL Shortened Successfully!</h3>
+
+        <!-- Original URL -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Original URL:</label>
+          <div class="p-3 bg-gray-100 rounded border text-sm text-gray-700 break-all" id="originalUrl"></div>
+        </div>
+
+        <!-- Shortened URL -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Shortened URL:</label>
+          <div class="flex items-center space-x-2">
+            <input type="text" id="shortenedUrl" class="flex-1 p-3 bg-white border border-gray-300 rounded text-sm font-mono" readonly>
+            <button id="copyBtn" class="px-4 py-3 bg-primary hover:bg-secondary text-white rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" title="Copy to clipboard">
+              <svg id="copyIcon" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <svg id="checkIcon" class="h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Try Another Button -->
+        <button id="tryAnotherBtn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-200">
+          Shorten Another URL
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-12 text-gray-500">
+      <p>&copy; 2025 Smol.link - Simple URL Shortener</p>
+    </div>
+  </div>
+
+  <script>
+    const urlForm = document.getElementById('urlForm');
+    const urlInput = document.getElementById('urlInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnLoader = document.getElementById('btnLoader');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const resultContainer = document.getElementById('resultContainer');
+    const originalUrl = document.getElementById('originalUrl');
+    const shortenedUrl = document.getElementById('shortenedUrl');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyIcon = document.getElementById('copyIcon');
+    const checkIcon = document.getElementById('checkIcon');
+    const tryAnotherBtn = document.getElementById('tryAnotherBtn');
+
+    // Form submission handler
+    urlForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const url = urlInput.value.trim();
+      if (!url) return;
+
+      // Reset UI states
+      hideError();
+      hideResult();
+      setLoading(true);
+
+      try {
+        const response = await fetch('/api/shorten', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ogLink: url
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showResult(data.original, data.short);
+        } else {
+          showError(data.error || 'Failed to shorten URL');
+        }
+      } catch (error) {
+        showError('Network error. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Copy button handler
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shortenedUrl.value);
+
+        // Visual feedback
+        copyIcon.classList.add('hidden');
+        checkIcon.classList.remove('hidden');
+        copyBtn.classList.remove('bg-primary', 'hover:bg-secondary');
+        copyBtn.classList.add('bg-green-500');
+
+        setTimeout(() => {
+          copyIcon.classList.remove('hidden');
+          checkIcon.classList.add('hidden');
+          copyBtn.classList.remove('bg-green-500');
+          copyBtn.classList.add('bg-primary', 'hover:bg-secondary');
+        }, 2000);
+      } catch (error) {
+        // Fallback for older browsers
+        shortenedUrl.select();
+        document.execCommand('copy');
+      }
+    });
+
+    // Try another button handler
+    tryAnotherBtn.addEventListener('click', () => {
+      urlInput.value = '';
+      hideResult();
+      hideError();
+      urlInput.focus();
+    });
+
+    // Utility functions
+    function setLoading(loading) {
+      if (loading) {
+        btnText.classList.add('hidden');
+        btnLoader.classList.remove('hidden');
+        submitBtn.disabled = true;
+      } else {
+        btnText.classList.remove('hidden');
+        btnLoader.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
+    }
+
+    function showError(message) {
+      errorText.textContent = message;
+      errorMessage.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorMessage.classList.add('hidden');
+    }
+
+    function showResult(original, shortened) {
+      originalUrl.textContent = original;
+      shortenedUrl.value = shortened;
+      resultContainer.classList.remove('hidden');
+    }
+
+    function hideResult() {
+      resultContainer.classList.add('hidden');
+    }
+
+    // Auto-focus on input when page loads
+    urlInput.focus();
+  </script>
+</body>
+
+</html>
